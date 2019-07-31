@@ -1,9 +1,30 @@
 const Slack = require('slack-node');
+const fetch = require('node-fetch');
+require('dotenv').config()
+
+async function peopleApiCall(person) {
+	const peopleAPIurl = `https://ip-people.herokuapp.com/api/people/${person}`
+		
+		const response = await fetch(peopleAPIurl, {
+			method: 'GET',
+			headers: {
+				'apikey': process.env.PEOPLE_API_KEY
+			}
+		});
+
+		return response.json()
+}
 
 module.exports = {
-    sendSlackMessage: (details) => {
+    sendSlackMessage: async (details) => {
         const { emailAddress, cost, reason, url, calendarYear, travelCost, additionalInfo } = details
-        console.log(`${emailAddress} wants £${cost} for ${reason}`)
+		console.log(`${emailAddress} wants £${cost} for ${reason}`)
+
+		const person = emailAddress.split('@')[0]
+
+		const response = await peopleApiCall(person)
+
+		console.log("approver", response[0].finance[0].name, "slack id", response[0].slack.id)
 
         const webhookUri = "https://hooks.slack.com/services/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";
         slack = new Slack();
