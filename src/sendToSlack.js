@@ -3,69 +3,89 @@ const fetch = require('node-fetch');
 require('dotenv').config()
 
 async function peopleApiCall(person) {
-	const peopleAPIurl = `https://ip-people.herokuapp.com/api/people/${person}`
-		
-		const response = await fetch(peopleAPIurl, {
-			method: 'GET',
-			headers: {
-				'apikey': process.env.PEOPLE_API_KEY
-			}
-		});
+  const peopleAPIurl = `https://ip-people.herokuapp.com/api/people/${person}`
 
-		return response.json()
+  const response = await fetch(peopleAPIurl, {
+    method: 'GET',
+    headers: {
+      'apikey': process.env.PEOPLE_API_KEY
+    }
+  });
+
+  return response.json()
 }
 
 module.exports = {
-    sendSlackMessage: async (details) => {
-        const { emailAddress, cost, reason, url, calendarYear, travelCost, additionalInfo } = details
-		console.log(`${emailAddress} wants £${cost} for ${reason}`)
+  sendSlackMessage: async (details) => {
 
-		const person = emailAddress.split('@')[0]
+    const { emailAddress, cost, reason, url, calendarYear, travelCost, additionalInfo } = details
 
-		const response = await peopleApiCall(person)
+    console.log(`${emailAddress} wants £${cost} for ${reason}`)
 
-		console.log("approver", response[0].finance[0].name, "slack id", response[0].slack.id)
+    const person = emailAddress.split('@')[0]
 
-        const webhookUri = "https://hooks.slack.com/services/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";
-        slack = new Slack();
-        slack.setWebhook(webhookUri);
-        
-        slack.webhook({
-        channel: "#junior-squad-2",
-        username: "Approvals Bot",
-        icon_emoji: "https://www.pngix.com/pngfile/big/0-7360_hand-holding-cash-money-hand-holding-money-png.png",
-        attachments: [
+    const response = await peopleApiCall(person)
+
+    console.log("approver", response[0].finance[0].name, "slack id", response[0].slack.id)
+
+    const secondResponse = await peopleApiCall(response[0].finance[0].name)
+
+    console.log("approver's slack id", secondResponse[0].slack.id)
+
+    // hard-coded to Kate's Slack id but will use info above
+    const approver = secondResponse[0].slack.id
+
+    // also hard-coded to Kate's id
+    const requester = response[0].slack.id
+
+    const webhookUri = "https://hooks.slack.com/services/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";
+    slack = new Slack();
+    slack.setWebhook(webhookUri);
+
+    slack.webhook({
+      channel: `${approver}`,
+      username: "Approvals Bot",
+      icon_emoji: "https://www.pngix.com/pngfile/big/0-7360_hand-holding-cash-money-hand-holding-money-png.png",
+      attachments: [
+        {
+          "fallback": "Approve button",
+          "actions": [
             {
-              "fallback": "Approve button",
-              "actions": [
-                {
-                  "type": "button",
-                  "text": "Approve",
-                  "style": "primary",
-                  "url": "https://flights.example.com/book/r123456"
-                },
-                {
-                    "type": "button",
-                    "text": "Deny",
-                    "style": "danger",
-                    "url": "https://flights.example.com/book/r123456"
-                  }
-              ]
+              "type": "button",
+              "text": "Approve",
+              "style": "primary",
+              "url": "https://flights.example.com/book/r123456"
+            },
+            {
+              "type": "button",
+              "text": "Deny",
+              "style": "danger",
+              "url": "https://flights.example.com/book/r123456"
             }
-          ],
-        text: `Hi! ${emailAddress} has sent through a new ${reason} request. 
+          ]
+        }
+      ],
+      text: `Hi! <@${requester}> has sent through a new ${reason} request. 
         • URL: ${url}. 
         • Cost: £${cost}. 
         • Travel/accomodation cost: £${travelCost}. 
         • Calendar year: ${calendarYear}. 
         • Additional info: ${additionalInfo}.`
-        }, function(err, response) {
-            if(err) {
-                console.log('An error has occured', err);
-            } else  {
-            console.log('message has been sent to Slack', response)
-            }
-        });
+    }, function (err, response) {
+      if (err) {
+        console.log('An error has occured', err);
+      } else {
+        console.log('message has been sent to Slack', response.response)
+      }
+    });
 
-    }
+  }
 }
+
+/* to do :
+
+- selectn for fields
+- fix url fields so they don't render weirdly
+- if no addtional info, then don't put 'undefined'
+
+*/
