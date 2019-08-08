@@ -33,7 +33,7 @@ module.exports = {
     console.log("approver's slack id", secondResponse[0].slack.id)
 
     // hard-coded to Kate's Slack id but will use info above
-    const approver = secondResponse[0].slack.id
+    const approver = response[0].slack.id
 
     // also hard-coded to Kate's id
     const requester = response[0].slack.id
@@ -42,6 +42,7 @@ module.exports = {
     slack = new Slack();
     slack.setWebhook(webhookUri);
 
+    const payload = JSON.stringify({"text":"this request is approved"})
     slack.webhook({
       channel: `${approver}`,
       username: "Approvals Bot",
@@ -54,7 +55,9 @@ module.exports = {
               "type": "button",
               "text": "Approve",
               "style": "primary",
-              "url": "https://flights.example.com/book/r123456"
+              "token": process.env.PEOPLE_API_KEY,
+              "url": "https://hooks.slack.com/commands/T025C95MN/707799544722/CA7ohfTE4RBUWMZv5Q1jIUbA",
+              "original_message": {"text":"this request is approved"}
             },
             {
               "type": "button",

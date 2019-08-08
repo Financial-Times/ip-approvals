@@ -1,4 +1,5 @@
 const { sendSlackMessage } = require('./sendToSlack');
+const { callLambda } = require('./invokeLambda');
 exports.handler = async (event) => {
 	const eventBody = JSON.parse(event.Records[0].body);
     const content = JSON.parse(eventBody.Message).content;
@@ -12,4 +13,6 @@ exports.handler = async (event) => {
     // console.log(`cost is ${finalObject.cost}`)
 
     sendSlackMessage(finalObject);
+
+    // callLambda()
 };
