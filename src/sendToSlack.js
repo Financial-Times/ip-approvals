@@ -42,6 +42,21 @@ module.exports = {
     slack = new Slack();
     slack.setWebhook("https://hooks.slack.com/services/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");
 
+    const approvedValue = {
+      "user": emailAddress,
+      "status": "Approve",
+      "cost": cost,
+      "reason": reason
+
+    }
+
+    const deniedValue = {
+      "user": emailAddress,
+      "status": "Deny",
+      "cost": cost,
+      "reason": reason
+    }
+
     slack.webhook({
       username: "Approvals Bot",
       icon_emoji: "https://www.pngix.com/pngfile/big/0-7360_hand-holding-cash-money-hand-holding-money-png.png",
@@ -59,14 +74,14 @@ module.exports = {
               "type": "button",
               "text": "Approve",
               "style": "primary",
-              "value": 'Approve'
+              "value": JSON.stringify(approvedValue)
             },
             {
               "name": "deny",
               "type": "button",
               "text": "Deny",
               "style": "danger",
-              "value": 'Deny'
+              "value": JSON.stringify(deniedValue)
             }
           ]
         }
