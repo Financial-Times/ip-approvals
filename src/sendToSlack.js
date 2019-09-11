@@ -42,7 +42,7 @@ module.exports = {
 
     slack = new Slack();
 
-    slack.setWebhook("https://hooks.slack.com/services/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");
+    slack.setWebhook(process.env.SLACK_WEBHOOK);
 
     console.log('connected to slack webhook')
     const approvedValue = {
