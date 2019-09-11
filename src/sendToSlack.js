@@ -24,6 +24,7 @@ module.exports = {
 
     const person = emailAddress.split('@')[0]
 
+    console.log('Calling People API')
     const response = await peopleApiCall(person)
 
     console.log("approver", response[0].finance[0].name, "slack id", response[0].slack.id)
@@ -33,34 +34,64 @@ module.exports = {
     console.log("approver's slack id", secondResponse[0].slack.id)
 
     // hard-coded to Kate's Slack id but will use info above
-    const approver = secondResponse[0].slack.id
+    const approver = response[0].slack.id
 
     // also hard-coded to Kate's id
     const requester = response[0].slack.id
+    // const requester = emailAddress;
 
-    const webhookUri = "https://hooks.slack.com/services/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";
     slack = new Slack();
-    slack.setWebhook(webhookUri);
+
+    slack.setWebhook("https://hooks.slack.com/services/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");
+
+    console.log('connected to slack webhook')
+    const approvedValue = {
+      "user": emailAddress,
+      "status": "Approve",
+      "cost": cost,
+      "reason": reason,
+      "url": url,
+      "calendarYear": calendarYear,
+      "travelCost": travelCost,
+      "additionalInfo": additionalInfo
+    }
+
+    const deniedValue = {
+      "user": emailAddress,
+      "status": "Deny",
+      "cost": cost,
+      "reason": reason,
+      "url": url,
+      "calendarYear": calendarYear,
+      "travelCost": travelCost,
+      "additionalInfo": additionalInfo
+    }
 
     slack.webhook({
-      channel: `${approver}`,
       username: "Approvals Bot",
       icon_emoji: "https://www.pngix.com/pngfile/big/0-7360_hand-holding-cash-money-hand-holding-money-png.png",
       attachments: [
         {
           "fallback": "Approve button",
+          "attachment_type": "default",
+          "attachments": [{
+            "text": "Approve"
+          }],
+          "callback_id": "123",
           "actions": [
             {
+              "name": "approve",
               "type": "button",
               "text": "Approve",
               "style": "primary",
-              "url": "https://flights.example.com/book/r123456"
+              "value": JSON.stringify(approvedValue)
             },
             {
+              "name": "deny",
               "type": "button",
               "text": "Deny",
               "style": "danger",
-              "url": "https://flights.example.com/book/r123456"
+              "value": JSON.stringify(deniedValue)
             }
           ]
         }
@@ -75,10 +106,9 @@ module.exports = {
       if (err) {
         console.log('An error has occured', err);
       } else {
-        console.log('message has been sent to Slack', response.response)
+        console.log('message has been sent to Slack', response.status)
       }
-    });
-
+    })
   }
 }
 
