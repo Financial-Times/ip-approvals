@@ -1,5 +1,7 @@
 const Slack = require('slack-node');
 const fetch = require('node-fetch');
+const moment = require('moment');
+
 require('dotenv').config()
 
 async function peopleApiCall(person) {
@@ -53,7 +55,8 @@ module.exports = {
       "url": url,
       "calendarYear": calendarYear,
       "travelCost": travelCost,
-      "additionalInfo": additionalInfo
+      "additionalInfo": additionalInfo,
+      "requestDate": moment().format("DD/MM/YYYY HH:mm:ss"),
     }
 
     const deniedValue = {
