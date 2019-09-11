@@ -38,23 +38,33 @@ module.exports = {
 
     // also hard-coded to Kate's id
     const requester = response[0].slack.id
+    // const requester = emailAddress;
 
     slack = new Slack();
+
     slack.setWebhook("https://hooks.slack.com/services/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");
 
+    console.log('connected to slack webhook')
     const approvedValue = {
       "user": emailAddress,
       "status": "Approve",
       "cost": cost,
-      "reason": reason
-
+      "reason": reason,
+      "url": url,
+      "calendarYear": calendarYear,
+      "travelCost": travelCost,
+      "additionalInfo": additionalInfo
     }
 
     const deniedValue = {
       "user": emailAddress,
       "status": "Deny",
       "cost": cost,
-      "reason": reason
+      "reason": reason,
+      "url": url,
+      "calendarYear": calendarYear,
+      "travelCost": travelCost,
+      "additionalInfo": additionalInfo
     }
 
     slack.webhook({
@@ -98,8 +108,7 @@ module.exports = {
       } else {
         console.log('message has been sent to Slack', response.status)
       }
-    });
-
+    })
   }
 }
 
