@@ -19,7 +19,7 @@ async function peopleApiCall(person) {
 
 module.exports = {
   sendSlackMessage: async (details) => {
-
+    console.log(details);
     const { emailAddress, cost, reason, url, calendarYear, travelCost, additionalInfo } = details
 
     console.log(`${emailAddress} wants £${cost} for ${reason}`)
@@ -52,11 +52,11 @@ module.exports = {
       "status": "Approve",
       "cost": cost,
       "reason": reason,
-      "url": url,
+      "url": url.replace("=",""),
       "calendarYear": calendarYear,
       "travelCost": travelCost,
       "additionalInfo": additionalInfo,
-      "requestDate": moment().format("DD/MM/YYYY HH:mm:ss"),
+      "requestDate": moment().format("DD/MM/YYYY HH:mm:ss")
     }
 
     const deniedValue = {
@@ -64,10 +64,11 @@ module.exports = {
       "status": "Deny",
       "cost": cost,
       "reason": reason,
-      "url": url,
+      "url": url.replace("=",""),
       "calendarYear": calendarYear,
       "travelCost": travelCost,
-      "additionalInfo": additionalInfo
+      "additionalInfo": additionalInfo,
+      "requestDate": moment().format("DD/MM/YYYY HH:mm:ss")
     }
 
     slack.webhook({
@@ -100,7 +101,7 @@ module.exports = {
         }
       ],
       text: `Hi! <@${requester}> has sent through a new ${reason} request. 
-        • URL: ${url}. 
+        • URL: ${url.replace("=","")}. 
         • Cost: £${cost}. 
         • Travel/accomodation cost: £${travelCost}. 
         • Calendar year: ${calendarYear}. 
