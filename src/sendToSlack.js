@@ -1,5 +1,7 @@
 const Slack = require('slack-node');
 const fetch = require('node-fetch');
+const moment = require('moment');
+
 require('dotenv').config()
 
 async function peopleApiCall(person) {
@@ -17,7 +19,7 @@ async function peopleApiCall(person) {
 
 module.exports = {
   sendSlackMessage: async (details) => {
-
+    console.log(details);
     const { emailAddress, cost, reason, url, calendarYear, travelCost, additionalInfo } = details
 
     console.log(`${emailAddress} wants £${cost} for ${reason}`)
@@ -42,7 +44,7 @@ module.exports = {
 
     slack = new Slack();
 
-    slack.setWebhook("https://hooks.slack.com/services/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");
+    slack.setWebhook(process.env.SLACK_WEBHOOK);
 
     console.log('connected to slack webhook')
     const approvedValue = {
@@ -50,10 +52,11 @@ module.exports = {
       "status": "Approve",
       "cost": cost,
       "reason": reason,
-      "url": url,
+      "url": url.replace("=",""),
       "calendarYear": calendarYear,
       "travelCost": travelCost,
-      "additionalInfo": additionalInfo
+      "additionalInfo": additionalInfo,
+      "requestDate": moment().format("DD/MM/YYYY HH:mm:ss")
     }
 
     const deniedValue = {
@@ -61,10 +64,11 @@ module.exports = {
       "status": "Deny",
       "cost": cost,
       "reason": reason,
-      "url": url,
+      "url": url.replace("=",""),
       "calendarYear": calendarYear,
       "travelCost": travelCost,
-      "additionalInfo": additionalInfo
+      "additionalInfo": additionalInfo,
+      "requestDate": moment().format("DD/MM/YYYY HH:mm:ss")
     }
 
     slack.webhook({
@@ -97,7 +101,7 @@ module.exports = {
         }
       ],
       text: `Hi! <@${requester}> has sent through a new ${reason} request. 
-        • URL: ${url}. 
+        • URL: ${url.replace("=","")}. 
         • Cost: £${cost}. 
         • Travel/accomodation cost: £${travelCost}. 
         • Calendar year: ${calendarYear}. 
