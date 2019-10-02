@@ -4,37 +4,77 @@ const moment = require('moment');
 
 require('dotenv').config()
 
-async function peopleApiCall(person) {
-  const peopleAPIurl = `https://ip-people.herokuapp.com/api/people/${person}`
+const secondPeopleAPIcall = (approver) => {
 
-  const response = await fetch(peopleAPIurl, {
+  approver = approver.replace(' ', '.')
+
+  const peopleAPIurl = `https://ip-people.herokuapp.com/api/people/${approver}`
+
+  const options = {
     method: 'GET',
     headers: {
       'apikey': process.env.PEOPLE_API_KEY
     }
-  });
+  };
 
-  return response.json()
+  return new Promise((resolve, reject) => {
+    fetch(peopleAPIurl, options)
+    .then(response => {
+      console.log('response number 2', response.statusText)
+      return response.json();
+    })
+    .then(json => {
+      console.log('approver slack id', json[0].slack.id)
+      resolve({
+        approverId: json[0].slack.id,
+      })
+    })
+  })
 }
 
-async function slackMessage(url, options) {
-  const response = await fetch(url, options)
+const peopleApiCall = (person) => {
+  const peopleAPIurl = `https://ip-people.herokuapp.com/api/people/${person}`
 
-  const body = response.json()
+  const options = {
+    method: 'GET',
+    headers: {
+      'apikey': process.env.PEOPLE_API_KEY
+    }
+  };
 
-  console.log(body)
-
-  return body
+  return new Promise((resolve, reject) => {
+    fetch(peopleAPIurl, options)
+    .then(response => {
+      console.log('response', response.statusText)
+      return response.json();
+    })
+    .then(json => {
+      console.log('approver name, ', json[0].finance[0].name, ' requester id, ', json[0].slack.id)
+      secondPeopleAPIcall(json[0].finance[0].name)
+      .then(result => {
+        resolve({
+          approverId: result.approverId,
+          approverName: json[0].finance[0].name,
+          requester: json[0].slack.id
+        })
+      })
+    })
+    .catch(err => {
+      console.log(err)
+      return reject(err)
+    })
+  })
 }
 
 module.exports = {
-  sendSlackMessage: () => {
-    // console.log(details);
-    // const { emailAddress, cost, reason, url, calendarYear, travelCost, additionalInfo } = details
+  sendSlackMessage: (details) => {
 
-    // console.log(`${emailAddress} wants £${cost} for ${reason}`)
+    console.log(details);
+    const { emailAddress, cost, reason, url, calendarYear, travelCost, additionalInfo } = details
 
-    // const person = emailAddress.split('@')[0]
+    console.log(`${emailAddress} wants £${cost} for ${reason}`)
+
+    const person = emailAddress.split('@')[0]
 
     // console.log('Calling People API')
     // const response = await peopleApiCall(person)
@@ -88,30 +128,38 @@ module.exports = {
     return new Promise((resolve, reject) => {
       console.log('trying to send');
 
-      const message = {
-        "username":"Mopsa", 
-        "text":":corn: Hi Jill",
-        "channel":"U03E98JJN",
-        "icon_emoji": ":corn:"
-    }
-      const recipient = 'U03E98JJN'
-      const url = 'https://hooks.slack.com/services/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'
-      const options = {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(message)
-      }
+      console.log('people api call')
 
-      fetch(url, options)
-      .then(response => {
-        console.log('response', response.statusText)
-        return resolve(response)
-      })
-      .catch(err => {
-        console.log(err)
-        return reject(err)
+      peopleApiCall(person)
+      .then(result => {
+
+        console.log(result)
+
+        const message = {
+          "username":"Mopsa", 
+          "text":`:corn: Hi Jill, your approver is ${result.approverName} and their slack id is ${result.approverId}`,
+          "channel": `${result.requester}`,
+          "icon_emoji": ":corn:"
+      }
+        const recipient = `${result.requester}`
+        const url = 'https://hooks.slack.com/services/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'
+        const options = {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(message)
+        }
+  
+        fetch(url, options)
+        .then(response => {
+          console.log('response', response.statusText)
+          return resolve(response)
+        })
+        .catch(err => {
+          console.log(err)
+          return reject(err)
+        })
       })
     })
   }
