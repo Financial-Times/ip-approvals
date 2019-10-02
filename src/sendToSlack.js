@@ -135,23 +135,54 @@ module.exports = {
 
         console.log(result)
 
-        const message = {
+        const messageForRequester = {
           "username":"Mopsa", 
-          "text":`:corn: Hi Jill, your approver is ${result.approverName} and their slack id is ${result.approverId}`,
+          "text":`:corn: Hi ${person}, your approver is ${result.approverName} they have received your request`,
           "channel": `${result.requester}`,
           "icon_emoji": ":corn:"
-      }
-        const recipient = `${result.requester}`
+        }
+
+        // angelique U03E70QNB
+
+        // const messageForApprover = {
+        //   "username":"Mopsa", 
+        //   "text":`:corn: Hi ${approverName}, you have a new TTC request from ${result.requester}`,
+        //   "channel": `${result.approverId}`,
+        //   "icon_emoji": ":corn:"
+        // }
+
+        const messageForApprover = {
+          "username":"Mopsa", 
+          "text":`:corn: Hi Angelique, you have a new TTC request from ${person}`,
+          "channel": 'U03E70QNB',
+          "icon_emoji": ":corn:"
+        }
+
         const url = 'https://hooks.slack.com/services/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'
-        const options = {
+  
+        fetch(url, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(message)
-        }
-  
-        fetch(url, options)
+          body: JSON.stringify(messageForApprover)
+        })
+        .then(response => {
+          console.log('response', response.statusText)
+          return resolve(response)
+        })
+        .catch(err => {
+          console.log(err)
+          return reject(err)
+        })
+
+        fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(messageForRequester)
+        })
         .then(response => {
           console.log('response', response.statusText)
           return resolve(response)
