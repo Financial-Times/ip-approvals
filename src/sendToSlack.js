@@ -19,16 +19,16 @@ const secondPeopleAPIcall = (approver) => {
 
   return new Promise((resolve, reject) => {
     fetch(peopleAPIurl, options)
-    .then(response => {
-      console.log('response number 2', response.statusText)
-      return response.json();
-    })
-    .then(json => {
-      console.log('approver slack id', json[0].slack.id)
-      resolve({
-        approverId: json[0].slack.id,
+      .then(response => {
+        console.log('response number 2', response.statusText)
+        return response.json();
       })
-    })
+      .then(json => {
+        console.log('approver slack id', json[0].slack.id)
+        resolve({
+          approverId: json[0].slack.id,
+        })
+      })
   })
 }
 
@@ -44,25 +44,26 @@ const peopleApiCall = (person) => {
 
   return new Promise((resolve, reject) => {
     fetch(peopleAPIurl, options)
-    .then(response => {
-      console.log('response', response.statusText)
-      return response.json();
-    })
-    .then(json => {
-      console.log('approver name, ', json[0].finance[0].name, ' requester id, ', json[0].slack.id)
-      secondPeopleAPIcall(json[0].finance[0].name)
-      .then(result => {
-        resolve({
-          approverId: result.approverId,
-          approverName: json[0].finance[0].name,
-          requester: json[0].slack.id
-        })
+      .then(response => {
+        console.log('response', response.statusText)
+        return response.json();
       })
-    })
-    .catch(err => {
-      console.log(err)
-      return reject(err)
-    })
+      .then(json => {
+        console.log('approver name, ', json[0].finance[0].name, ' requester id, ', json[0].slack.id)
+        secondPeopleAPIcall(json[0].finance[0].name)
+          .then(result => {
+            resolve({
+              approverId: result.approverId,
+              approverName: json[0].finance[0].name,
+              requesterId: json[0].slack.id,
+              requesterName: json[0].name
+            })
+          })
+      })
+      .catch(err => {
+        console.log(err)
+        return reject(err)
+      })
   })
 }
 
@@ -76,122 +77,108 @@ module.exports = {
 
     const person = emailAddress.split('@')[0]
 
-    // console.log('Calling People API')
-    // const response = await peopleApiCall(person)
-
-    // console.log("approver", response[0].finance[0].name, "slack id", response[0].slack.id)
-
-    // const secondResponse = await peopleApiCall(response[0].finance[0].name)
-
-    // console.log("approver's slack id", secondResponse[0].slack.id)
-
-    // // hard-coded to Kate's Slack id but will use info above
-    // const approver = response[0].slack.id
-
-    // // also hard-coded to Kate's id
-    // const requester = response[0].slack.id
-    // // const requester = emailAddress;
-
-    // const message = {
-    //   "username": "Approvals Bot",
-    //   "icon_emoji": "https://www.pngix.com/pngfile/big/0-7360_hand-holding-cash-money-hand-holding-money-png.png",
-    //   "attachments": [
-    //     {
-    //       "fallback": "Approve button",
-    //       "attachment_type": "default",
-    //       "attachments": [{
-    //         "text": "Approve"
-    //       }],
-    //       "callback_id": "123",
-    //       "actions": [
-    //         {
-    //           "name": "approve",
-    //           "type": "button",
-    //           "text": "Approve",
-    //           "style": "primary",
-    //           "value": "yeeeee"
-    //         },
-    //         {
-    //           "name": "deny",
-    //           "type": "button",
-    //           "text": "Deny",
-    //           "style": "danger",
-    //           "value": "hawwwwwwww"
-    //         }
-    //       ]
-    //     }
-    //   ],
-    //   "text": "boooooo",
-		// "channel": "U03E98JJN"
-    // }
-
     return new Promise((resolve, reject) => {
       console.log('trying to send');
 
       console.log('people api call')
 
       peopleApiCall(person)
-      .then(result => {
+        .then(result => {
 
-        console.log(result)
+          console.log(result)
 
-        const messageForRequester = {
-          "username":"Mopsa", 
-          "text":`:corn: Hi ${person}, your approver is ${result.approverName} they have received your request`,
-          "channel": `${result.requester}`,
-          "icon_emoji": ":corn:"
-        }
+          const messageForRequester = {
+            "username": "Mopsa",
+            "text": `:corn: Hi ${result.requesterName}, your approver is ${result.approverName} they have received your request`,
+            "channel": `${result.requesterId}`,
+            "icon_emoji": ":corn:",
+            "attachments": [
+              {
+                "fallback": "New open task [Urgent]: <http://url_to_task|Test out Slack message attachments>",
+                "pretext": "New open task [Urgent]: <http://url_to_task|Test out Slack message attachments>",
+                "color": "#D00000",
+                "fields": [
+                  {
+                    "title": "Notes",
+                    "value": "This is much easier than I thought it would be.",
+                    "short": false
+                  }
+                ]
+              }
+            ]
+          }
 
-        // angelique U03E70QNB
+          const messageForApprover = {
+            "username": "Mopsa",
+            "text": `:corn: Hi ${approverName}, you have a new TTC request from ${result.requesterName}`,
+            "channel": `${result.approverId}`,
+            "icon_emoji": ":corn:",
+            "attachments": [
+              {
+                "fallback": "New open task [Urgent]: <http://url_to_task|Test out Slack message attachments>",
+                "pretext": "New open task [Urgent]: <http://url_to_task|Test out Slack message attachments>",
+                "color": "#D00000",
+                "fields": [
+                  {
+                    "title": "Notes",
+                    "value": "This is much easier than I thought it would be.",
+                    "short": false
+                  }
+                ],
+                "actions": [
+                  {
+                    "name": "approve",
+                    "type": "button",
+                    "text": "Approve :+1:",
+                    "style": "primary",
+                    "value": "yeeeee"
+                  },
+                  {
+                    "name": "deny",
+                    "type": "button",
+                    "text": "Deny :thumbsdown:",
+                    "style": "danger",
+                    "value": "hawwwwwwww"
+                  }
+                ]
+              }
+            ]
+          }
 
-        // const messageForApprover = {
-        //   "username":"Mopsa", 
-        //   "text":`:corn: Hi ${approverName}, you have a new TTC request from ${result.requester}`,
-        //   "channel": `${result.approverId}`,
-        //   "icon_emoji": ":corn:"
-        // }
+          const url = process.env.WEBHOOK
 
-        const messageForApprover = {
-          "username":"Mopsa", 
-          "text":`:corn: Hi Angelique, you have a new TTC request from ${person}`,
-          "channel": 'U03E70QNB',
-          "icon_emoji": ":corn:"
-        }
+          fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(messageForApprover)
+          })
+            .then(response => {
+              console.log('response', response.statusText)
+              return resolve(response)
+            })
+            .catch(err => {
+              console.log(err)
+              return reject(err)
+            })
 
-        const url = 'https://hooks.slack.com/services/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'
-  
-        fetch(url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(messageForApprover)
+          fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(messageForRequester)
+          })
+            .then(response => {
+              console.log('response', response.statusText)
+              return resolve(response)
+            })
+            .catch(err => {
+              console.log(err)
+              return reject(err)
+            })
         })
-        .then(response => {
-          console.log('response', response.statusText)
-          return resolve(response)
-        })
-        .catch(err => {
-          console.log(err)
-          return reject(err)
-        })
-
-        fetch(url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(messageForRequester)
-        })
-        .then(response => {
-          console.log('response', response.statusText)
-          return resolve(response)
-        })
-        .catch(err => {
-          console.log(err)
-          return reject(err)
-        })
-      })
     })
   }
 }
