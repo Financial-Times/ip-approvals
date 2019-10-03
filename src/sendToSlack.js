@@ -1,4 +1,3 @@
-//const Slack = require('slack-node');
 const fetch = require('node-fetch');
 const moment = require('moment');
 
@@ -69,7 +68,6 @@ const peopleApiCall = (person) => {
 
 module.exports = {
   sendSlackMessage: (details) => {
-
     console.log(details);
     const { emailAddress, cost, reason, url, calendarYear, travelCost, additionalInfo } = details
 
