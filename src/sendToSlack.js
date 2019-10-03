@@ -1,24 +1,73 @@
-const Slack = require('slack-node');
 const fetch = require('node-fetch');
 const moment = require('moment');
 
 require('dotenv').config()
 
-async function peopleApiCall(person) {
-  const peopleAPIurl = `https://ip-people.herokuapp.com/api/people/${person}`
+const secondPeopleAPIcall = (approver) => {
 
-  const response = await fetch(peopleAPIurl, {
+  approver = approver.replace(' ', '.')
+
+  const peopleAPIurl = `https://ip-people.herokuapp.com/api/people/${approver}`
+
+  const options = {
     method: 'GET',
     headers: {
       'apikey': process.env.PEOPLE_API_KEY
     }
-  });
+  };
 
-  return response.json()
+  return new Promise((resolve, reject) => {
+    fetch(peopleAPIurl, options)
+      .then(response => {
+        console.log('response number 2', response.statusText)
+        return response.json();
+      })
+      .then(json => {
+        console.log('approver slack id', json[0].slack.id)
+        resolve({
+          approverId: json[0].slack.id,
+        })
+      })
+  })
+}
+
+const peopleApiCall = (person) => {
+  const peopleAPIurl = `https://ip-people.herokuapp.com/api/people/${person}`
+
+  const options = {
+    method: 'GET',
+    headers: {
+      'apikey': process.env.PEOPLE_API_KEY
+    }
+  };
+
+  return new Promise((resolve, reject) => {
+    fetch(peopleAPIurl, options)
+      .then(response => {
+        console.log('response', response.statusText)
+        return response.json();
+      })
+      .then(json => {
+        console.log('approver name, ', json[0].finance[0].name, ' requester id, ', json[0].slack.id)
+        secondPeopleAPIcall(json[0].finance[0].name)
+          .then(result => {
+            resolve({
+              approverId: result.approverId,
+              approverName: json[0].finance[0].name,
+              requesterId: json[0].slack.id,
+              requesterName: json[0].name
+            })
+          })
+      })
+      .catch(err => {
+        console.log(err)
+        return reject(err)
+      })
+  })
 }
 
 module.exports = {
-  sendSlackMessage: async (details) => {
+  sendSlackMessage: (details) => {
     console.log(details);
     const { emailAddress, cost, reason, url, calendarYear, travelCost, additionalInfo } = details
 
@@ -26,100 +75,108 @@ module.exports = {
 
     const person = emailAddress.split('@')[0]
 
-    console.log('Calling People API')
-    const response = await peopleApiCall(person)
+    return new Promise((resolve, reject) => {
+      console.log('trying to send');
 
-    console.log("approver", response[0].finance[0].name, "slack id", response[0].slack.id)
+      console.log('people api call')
 
-    const secondResponse = await peopleApiCall(response[0].finance[0].name)
+      peopleApiCall(person)
+        .then(result => {
 
-    console.log("approver's slack id", secondResponse[0].slack.id)
+          console.log(result)
 
-    // hard-coded to Kate's Slack id but will use info above
-    const approver = response[0].slack.id
+          const messageForRequester = {
+            "username": "Mopsa",
+            "text": `:corn: Hi ${result.requesterName}, your approver is ${result.approverName} they have received your request`,
+            "channel": `${result.requesterId}`,
+            "icon_emoji": ":corn:",
+            "attachments": [
+              {
+                "fallback": "New open task [Urgent]: <http://url_to_task|Test out Slack message attachments>",
+                "pretext": "New open task [Urgent]: <http://url_to_task|Test out Slack message attachments>",
+                "color": "#D00000",
+                "fields": [
+                  {
+                    "title": "Notes",
+                    "value": "This is much easier than I thought it would be.",
+                    "short": false
+                  }
+                ]
+              }
+            ]
+          }
 
-    // also hard-coded to Kate's id
-    const requester = response[0].slack.id
-    // const requester = emailAddress;
+          const messageForApprover = {
+            "username": "Mopsa",
+            "text": `:corn: Hi ${approverName}, you have a new TTC request from ${result.requesterName}`,
+            "channel": `${result.approverId}`,
+            "icon_emoji": ":corn:",
+            "attachments": [
+              {
+                "fallback": "New open task [Urgent]: <http://url_to_task|Test out Slack message attachments>",
+                "pretext": "New open task [Urgent]: <http://url_to_task|Test out Slack message attachments>",
+                "color": "#D00000",
+                "fields": [
+                  {
+                    "title": "Notes",
+                    "value": "This is much easier than I thought it would be.",
+                    "short": false
+                  }
+                ],
+                "actions": [
+                  {
+                    "name": "approve",
+                    "type": "button",
+                    "text": "Approve :+1:",
+                    "style": "primary",
+                    "value": "yeeeee"
+                  },
+                  {
+                    "name": "deny",
+                    "type": "button",
+                    "text": "Deny :thumbsdown:",
+                    "style": "danger",
+                    "value": "hawwwwwwww"
+                  }
+                ]
+              }
+            ]
+          }
 
-    slack = new Slack();
+          const url = process.env.WEBHOOK
 
-    slack.setWebhook(process.env.SLACK_WEBHOOK);
-
-    console.log('connected to slack webhook')
-    const approvedValue = {
-      "user": emailAddress,
-      "status": "Approve",
-      "cost": cost,
-      "reason": reason,
-      "url": url.replace("=",""),
-      "calendarYear": calendarYear,
-      "travelCost": travelCost,
-      "additionalInfo": additionalInfo,
-      "requestDate": moment().format("DD/MM/YYYY HH:mm:ss")
-    }
-
-    const deniedValue = {
-      "user": emailAddress,
-      "status": "Deny",
-      "cost": cost,
-      "reason": reason,
-      "url": url.replace("=",""),
-      "calendarYear": calendarYear,
-      "travelCost": travelCost,
-      "additionalInfo": additionalInfo,
-      "requestDate": moment().format("DD/MM/YYYY HH:mm:ss")
-    }
-
-    slack.webhook({
-      username: "Approvals Bot",
-      icon_emoji: "https://www.pngix.com/pngfile/big/0-7360_hand-holding-cash-money-hand-holding-money-png.png",
-      attachments: [
-        {
-          "fallback": "Approve button",
-          "attachment_type": "default",
-          "attachments": [{
-            "text": "Approve"
-          }],
-          "callback_id": "123",
-          "actions": [
-            {
-              "name": "approve",
-              "type": "button",
-              "text": "Approve",
-              "style": "primary",
-              "value": JSON.stringify(approvedValue)
+          fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
             },
-            {
-              "name": "deny",
-              "type": "button",
-              "text": "Deny",
-              "style": "danger",
-              "value": JSON.stringify(deniedValue)
-            }
-          ]
-        }
-      ],
-      text: `Hi! <@${requester}> has sent through a new ${reason} request. 
-        • URL: ${url.replace("=","")}. 
-        • Cost: £${cost}. 
-        • Travel/accomodation cost: £${travelCost}. 
-        • Calendar year: ${calendarYear}. 
-        • Additional info: ${additionalInfo}.`
-    }, function (err, response) {
-      if (err) {
-        console.log('An error has occured', err);
-      } else {
-        console.log('message has been sent to Slack', response.status)
-      }
+            body: JSON.stringify(messageForApprover)
+          })
+            .then(response => {
+              console.log('response', response.statusText)
+              return resolve(response)
+            })
+            .catch(err => {
+              console.log(err)
+              return reject(err)
+            })
+
+          fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(messageForRequester)
+          })
+            .then(response => {
+              console.log('response', response.statusText)
+              return resolve(response)
+            })
+            .catch(err => {
+              console.log(err)
+              return reject(err)
+            })
+        })
     })
   }
 }
-
-/* to do :
-
-- selectn for fields
-- fix url fields so they don't render weirdly
-- if no addtional info, then don't put 'undefined'
-
-*/
