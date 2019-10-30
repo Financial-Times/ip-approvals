@@ -111,32 +111,28 @@ module.exports = {
             "text": `:corn: Hi ${approverName}, you have a new TTC request from ${result.requesterName}`,
             "channel": `${result.approverId}`,
             "icon_emoji": ":corn:",
-            "attachments": [
+            "blocks": [
               {
-                "fallback": "New open task [Urgent]: <http://url_to_task|Test out Slack message attachments>",
-                "pretext": "New open task [Urgent]: <http://url_to_task|Test out Slack message attachments>",
-                "color": "#D00000",
-                "fields": [
+                "type": "actions",
+                "block_id": "approvalblock",
+                "elements": [
                   {
-                    "title": "Notes",
-                    "value": "This is much easier than I thought it would be.",
-                    "short": false
-                  }
-                ],
-                "actions": [
-                  {
-                    "name": "approve",
                     "type": "button",
-                    "text": "Approve :+1:",
+                    "text": {
+                      "type": "plain_text",
+                      "text": "Approve"
+                    },
                     "style": "primary",
-                    "value": "yeeeee"
+                    "value": "approve"
                   },
                   {
-                    "name": "deny",
                     "type": "button",
-                    "text": "Deny :thumbsdown:",
+                    "text": {
+                      "type": "plain_text",
+                      "text": "Primary Button"
+                    },
                     "style": "danger",
-                    "value": "hawwwwwwww"
+                    "value": "deny"
                   }
                 ]
               }
