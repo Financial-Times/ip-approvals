@@ -52,7 +52,7 @@ const peopleApiCall = (person) => {
         secondPeopleAPIcall(json[0].finance[0].name)
           .then(result => {
             resolve({
-              approverId: 'UDW1KUF6H',
+              approverId: result.approverId,
               approverName: json[0].finance[0].name,
               requesterId: json[0].slack.id,
               requesterName: json[0].name
@@ -108,8 +108,9 @@ module.exports = {
 
           const messageForApprover = {
             "username": "Mopsa",
-            "text": `:corn: Hi ${result.approverName}, you have a new TTC request from ${result.requesterName}`,
-            "channel": `${result.approverId}`,
+            "text": `:corn: Hi ${result.approverName}, you have a new TTC request ${uuid} from ${result.requesterName}`,
+            // change back to result.approverId
+            "channel": `${result.requesterId}`,
             "icon_emoji": ":corn:",
             "blocks": [
               {
@@ -139,7 +140,7 @@ module.exports = {
             ]
           }
 
-          const url = process.env.WEBHOOK
+          const url = "https://hooks.slack.com/services/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"
 
           fetch(url, {
             method: 'POST',
