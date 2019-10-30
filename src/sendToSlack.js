@@ -110,7 +110,7 @@ module.exports = {
                       "text": "Approve"
                     },
                     "style": "primary",
-                    "value": "approve"
+                    "value": {answer: "approve", uuid: uuid}
                   },
                   {
                     "type": "button",
@@ -119,7 +119,7 @@ module.exports = {
                       "text": "Deny"
                     },
                     "style": "danger",
-                    "value": "deny"
+                    "value": {answer: "deny", uuid: uuid}
                   }
                 ]
               }
