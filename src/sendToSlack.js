@@ -69,7 +69,7 @@ const peopleApiCall = (person) => {
 module.exports = {
   sendSlackMessage: (details) => {
     console.log(details);
-    const { emailAddress, cost, reason, url, calendarYear, travelCost, additionalInfo } = details
+    const { emailAddress, cost, reason, url, calendarYear, travelCost, additionalInfo, uuid } = details
 
     console.log(`${emailAddress} wants £${cost} for ${reason}`)
 
@@ -92,58 +92,62 @@ module.exports = {
             "icon_emoji": ":corn:",
             "attachments": [
               {
-                "fallback": "New open task [Urgent]: <http://url_to_task|Test out Slack message attachments>",
-                "pretext": "New open task [Urgent]: <http://url_to_task|Test out Slack message attachments>",
+                "fallback": "Your request has been received",
+                // "pretext": "New open task [Urgent]: <http://url_to_task|Test out Slack message attachments>",
                 "color": "#D00000",
-                "fields": [
-                  {
-                    "title": "Notes",
-                    "value": "This is much easier than I thought it would be.",
-                    "short": false
-                  }
-                ]
+                // "fields": [
+                //   {
+                //     "title": "Notes",
+                //     "value": "This is much easier than I thought it would be.",
+                //     "short": false
+                //   }
+                // ]
               }
             ]
           }
 
           const messageForApprover = {
             "username": "Mopsa",
-            "text": `:corn: Hi ${approverName}, you have a new TTC request from ${result.requesterName}`,
-            "channel": `${result.approverId}`,
+            "text": `:corn: Hi ${result.approverName}, you have a new TTC request ${uuid} from ${result.requesterName}`,
+            // change back to result.approverId
+            "channel": `${result.requesterId}`,
             "icon_emoji": ":corn:",
             "attachments": [
               {
                 "fallback": "New open task [Urgent]: <http://url_to_task|Test out Slack message attachments>",
-                "pretext": "New open task [Urgent]: <http://url_to_task|Test out Slack message attachments>",
+                // "pretext": "New open task [Urgent]: <http://url_to_task|Test out Slack message attachments>",
                 "color": "#D00000",
-                "fields": [
-                  {
-                    "title": "Notes",
-                    "value": "This is much easier than I thought it would be.",
-                    "short": false
-                  }
-                ],
+                // "fields": [
+                //   {
+                //     "title": "Notes",
+                //     "value": "This is much easier than I thought it would be.",
+                //     "short": false
+                //   }
+                // ],
                 "actions": [
                   {
                     "name": "approve",
                     "type": "button",
                     "text": "Approve :+1:",
                     "style": "primary",
-                    "value": "yeeeee"
+                    "value": {answer: "approve", uuid: uuid},
+                    "url": "https://lursqeu722.execute-api.eu-west-1.amazonaws.com/prod/"
                   },
                   {
                     "name": "deny",
                     "type": "button",
                     "text": "Deny :thumbsdown:",
                     "style": "danger",
-                    "value": "hawwwwwwww"
+                    "value": {answer: "deny", uuid: uuid},
+                    "url": "https://lursqeu722.execute-api.eu-west-1.amazonaws.com/prod/"
+                  
                   }
                 ]
               }
             ]
           }
 
-          const url = process.env.WEBHOOK
+          const url = "https://hooks.slack.com/services/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"
 
           fetch(url, {
             method: 'POST',
