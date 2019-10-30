@@ -52,7 +52,7 @@ const peopleApiCall = (person) => {
         secondPeopleAPIcall(json[0].finance[0].name)
           .then(result => {
             resolve({
-              approverId: result.approverId,
+              approverId: 'UDW1KUF6H',
               approverName: json[0].finance[0].name,
               requesterId: json[0].slack.id,
               requesterName: json[0].name
@@ -108,7 +108,7 @@ module.exports = {
 
           const messageForApprover = {
             "username": "Mopsa",
-            "text": `:corn: Hi ${approverName}, you have a new TTC request from ${result.requesterName}`,
+            "text": `:corn: Hi ${result.approverName}, you have a new TTC request from ${result.requesterName}`,
             "channel": `${result.approverId}`,
             "icon_emoji": ":corn:",
             "blocks": [
