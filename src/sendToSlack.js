@@ -69,7 +69,7 @@ const peopleApiCall = (person) => {
 module.exports = {
   sendSlackMessage: (details) => {
     console.log(details);
-    const { emailAddress, cost, reason, url, calendarYear, travelCost, additionalInfo } = details
+    const { emailAddress, cost, reason, url, calendarYear, travelCost, additionalInfo, uuid } = details
 
     console.log(`${emailAddress} wants £${cost} for ${reason}`)
 
@@ -87,23 +87,9 @@ module.exports = {
 
           const messageForRequester = {
             "username": "Mopsa",
-            "text": `:corn: Hi ${result.requesterName}, your approver is ${result.approverName} they have received your request`,
+            "text": `:corn: Hi ${result.requesterName}, your approver ${result.approverName} has received your request.`,
             "channel": `${result.requesterId}`,
-            "icon_emoji": ":corn:",
-            "attachments": [
-              {
-                "fallback": "New open task [Urgent]: <http://url_to_task|Test out Slack message attachments>",
-                "pretext": "New open task [Urgent]: <http://url_to_task|Test out Slack message attachments>",
-                "color": "#D00000",
-                "fields": [
-                  {
-                    "title": "Notes",
-                    "value": "This is much easier than I thought it would be.",
-                    "short": false
-                  }
-                ]
-              }
-            ]
+            "icon_emoji": ":corn:"
           }
 
           const messageForApprover = {
@@ -130,7 +116,7 @@ module.exports = {
                     "type": "button",
                     "text": {
                       "type": "plain_text",
-                      "text": "Primary Button"
+                      "text": "Deny"
                     },
                     "style": "danger",
                     "value": "deny"
@@ -140,7 +126,7 @@ module.exports = {
             ]
           }
 
-          const url = "https://hooks.slack.com/services/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"
+          const url = "https://hooks.slack.com/services/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"
 
           fetch(url, {
             method: 'POST',
