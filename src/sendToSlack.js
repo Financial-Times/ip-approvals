@@ -94,11 +94,18 @@ module.exports = {
 
           const messageForApprover = {
             "username": "Mopsa",
-            "text": `:corn: Hi ${result.approverName}, you have a new TTC request ${uuid} from ${result.requesterName}`,
             // change back to result.approverId
-            "channel": `${result.requesterId}`,
+            "channel": 'UDW1KUF6H',
             "icon_emoji": ":corn:",
+            "uri": "https://lursqeu722.execute-api.eu-west-1.amazonaws.com/prod/",
             "blocks": [
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": `:corn: Hi ${result.approverName}, you have a new TTC request ${uuid} from ${result.requesterName}`
+                }
+              },
               {
                 "type": "actions",
                 "block_id": "approvalblock",
@@ -110,7 +117,7 @@ module.exports = {
                       "text": "Approve"
                     },
                     "style": "primary",
-                    "value": {answer: "approve", uuid: uuid}
+                    "value": "approve"
                   },
                   {
                     "type": "button",
@@ -119,14 +126,14 @@ module.exports = {
                       "text": "Deny"
                     },
                     "style": "danger",
-                    "value": {answer: "deny", uuid: uuid}
+                    "value": "deny"
                   }
                 ]
               }
             ]
           }
 
-          const url = "https://hooks.slack.com/services/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"
+          const url = "https://hooks.slack.com/services/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"
 
           fetch(url, {
             method: 'POST',
@@ -136,7 +143,7 @@ module.exports = {
             body: JSON.stringify(messageForApprover)
           })
             .then(response => {
-              console.log('response', response.statusText)
+              console.log('response for approver', response.status)
               return resolve(response)
             })
             .catch(err => {
@@ -152,7 +159,7 @@ module.exports = {
             body: JSON.stringify(messageForRequester)
           })
             .then(response => {
-              console.log('response', response.statusText)
+              console.log('response for requester', response.status)
               return resolve(response)
             })
             .catch(err => {
