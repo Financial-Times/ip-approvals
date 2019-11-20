@@ -1,5 +1,5 @@
 const fetch = require('node-fetch');
-const moment = require('moment');
+//const moment = require('moment');
 
 require('dotenv').config()
 
@@ -69,7 +69,7 @@ const peopleApiCall = (person) => {
 module.exports = {
   sendSlackMessage: (details) => {
     console.log(details);
-    const { emailAddress, cost, reason, url, calendarYear, travelCost, additionalInfo } = details
+    const { emailAddress, cost, reason, url, calendarYear, travelCost, additionalInfo, uuid } = details
 
     console.log(`${emailAddress} wants £${cost} for ${reason}`)
 
@@ -86,74 +86,70 @@ module.exports = {
           console.log(result)
 
           const messageForRequester = {
-            "username": "Mopsa",
-            "text": `:corn: Hi ${result.requesterName}, your approver is ${result.approverName} they have received your request`,
-            "channel": `${result.requesterId}`,
-            "icon_emoji": ":corn:",
-            "attachments": [
+            text: `:corn: Hi ${result.requesterName}, your approver ${result.approverName} has received your request.`,
+            channel: `${result.requesterId}`,
+            blocks: [
               {
-                "fallback": "New open task [Urgent]: <http://url_to_task|Test out Slack message attachments>",
-                "pretext": "New open task [Urgent]: <http://url_to_task|Test out Slack message attachments>",
-                "color": "#D00000",
-                "fields": [
-                  {
-                    "title": "Notes",
-                    "value": "This is much easier than I thought it would be.",
-                    "short": false
-                  }
-                ]
+                type: 'section',
+                text: {
+                  type: 'mrkdwn',
+                  text: `:corn: Hi ${result.requesterName}, your approver ${result.approverName} has received your request.`,
+                },
               }
             ]
           }
 
           const messageForApprover = {
-            "username": "Mopsa",
-            "text": `:corn: Hi ${approverName}, you have a new TTC request from ${result.requesterName}`,
-            "channel": `${result.approverId}`,
-            "icon_emoji": ":corn:",
-            "attachments": [
+            // change back to result.approverId
+            channel: 'UDW1KUF6H',
+            text: `:corn: Hi ${result.approverName}, you have a new TTC request ${uuid} from ${result.requesterName}`,
+            blocks: [
               {
-                "fallback": "New open task [Urgent]: <http://url_to_task|Test out Slack message attachments>",
-                "pretext": "New open task [Urgent]: <http://url_to_task|Test out Slack message attachments>",
-                "color": "#D00000",
-                "fields": [
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": `:corn: Hi ${result.approverName}, you have a new TTC request ${uuid} from ${result.requesterName}`
+                }
+              },
+              {
+                "type": "actions",
+                "block_id": "approvalblock",
+                "elements": [
                   {
-                    "title": "Notes",
-                    "value": "This is much easier than I thought it would be.",
-                    "short": false
-                  }
-                ],
-                "actions": [
-                  {
-                    "name": "approve",
                     "type": "button",
-                    "text": "Approve :+1:",
+                    "text": {
+                      "type": "plain_text",
+                      "text": "Approve"
+                    },
                     "style": "primary",
-                    "value": "yeeeee"
+                    "value": "approve"
                   },
                   {
-                    "name": "deny",
                     "type": "button",
-                    "text": "Deny :thumbsdown:",
+                    "text": {
+                      "type": "plain_text",
+                      "text": "Deny"
+                    },
                     "style": "danger",
-                    "value": "hawwwwwwww"
+                    "value": "deny"
                   }
                 ]
               }
             ]
           }
 
-          const url = process.env.WEBHOOK
+          const url = "https://slack.com/api/chat.postMessage"
 
           fetch(url, {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${process.env.SLACK_BOT_USER_OAUTH_ACCESS_TOKEN}`
             },
             body: JSON.stringify(messageForApprover)
           })
             .then(response => {
-              console.log('response', response.statusText)
+              console.log('response for approver', response.data)
               return resolve(response)
             })
             .catch(err => {
@@ -164,12 +160,13 @@ module.exports = {
           fetch(url, {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${process.env.SLACK_BOT_USER_OAUTH_ACCESS_TOKEN}`
             },
             body: JSON.stringify(messageForRequester)
           })
             .then(response => {
-              console.log('response', response.statusText)
+              console.log('response for requester', response.data)
               return resolve(response)
             })
             .catch(err => {
