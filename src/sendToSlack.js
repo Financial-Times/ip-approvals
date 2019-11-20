@@ -1,5 +1,5 @@
 const fetch = require('node-fetch');
-const moment = require('moment');
+//const moment = require('moment');
 
 require('dotenv').config()
 
@@ -86,19 +86,24 @@ module.exports = {
           console.log(result)
 
           const messageForRequester = {
-            "username": "Mopsa",
-            "text": `:corn: Hi ${result.requesterName}, your approver ${result.approverName} has received your request.`,
-            "channel": `${result.requesterId}`,
-            "icon_emoji": ":corn:"
+            text: `:corn: Hi ${result.requesterName}, your approver ${result.approverName} has received your request.`,
+            channel: `${result.requesterId}`,
+            blocks: [
+              {
+                type: 'section',
+                text: {
+                  type: 'mrkdwn',
+                  text: `:corn: Hi ${result.requesterName}, your approver ${result.approverName} has received your request.`,
+                },
+              }
+            ]
           }
 
           const messageForApprover = {
-            "username": "Mopsa",
             // change back to result.approverId
-            "channel": 'UDW1KUF6H',
-            "icon_emoji": ":corn:",
-            "uri": "https://lursqeu722.execute-api.eu-west-1.amazonaws.com/prod/",
-            "blocks": [
+            channel: 'UDW1KUF6H',
+            text: `:corn: Hi ${result.approverName}, you have a new TTC request ${uuid} from ${result.requesterName}`,
+            blocks: [
               {
                 "type": "section",
                 "text": {
@@ -133,17 +138,18 @@ module.exports = {
             ]
           }
 
-          const url = "https://hooks.slack.com/services/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"
+          const url = "https://slack.com/api/chat.postMessage"
 
           fetch(url, {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${process.env.SLACK_BOT_USER_OAUTH_ACCESS_TOKEN}`
             },
             body: JSON.stringify(messageForApprover)
           })
             .then(response => {
-              console.log('response for approver', response.status)
+              console.log('response for approver', response.data)
               return resolve(response)
             })
             .catch(err => {
@@ -154,12 +160,13 @@ module.exports = {
           fetch(url, {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${process.env.SLACK_BOT_USER_OAUTH_ACCESS_TOKEN}`
             },
             body: JSON.stringify(messageForRequester)
           })
             .then(response => {
-              console.log('response for requester', response.status)
+              console.log('response for requester', response.data)
               return resolve(response)
             })
             .catch(err => {
