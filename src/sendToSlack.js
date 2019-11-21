@@ -86,29 +86,33 @@ module.exports = {
           console.log(result)
 
           const messageForRequester = {
-            text: `:corn: Hi ${result.requesterName}, your approver ${result.approverName} has received your request.`,
+            // text that appears in Slack notification
+            text: `Hi ${result.requesterName}, your approver ${result.approverName} has received your new ${reason} request.\n• Cost: £${cost}\n• Travel/accomodation cost: £${travelCost}\n• Calendar year: ${calendarYear}\n• Booking url: ${url}\n• Additional info: ${additionalInfo}.\n• Request id: ${uuid}`,
             channel: `${result.requesterId}`,
+            // text that appears in Slack message
             blocks: [
               {
                 type: 'section',
                 text: {
                   type: 'mrkdwn',
-                  text: `:corn: Hi ${result.requesterName}, your approver ${result.approverName} has received your request.`,
+                  text: `Hi ${result.requesterName}, your approver ${result.approverName} has received your new ${reason} request.\n• Cost: £${cost}\n• Travel/accomodation cost: £${travelCost}\n• Calendar year: ${calendarYear}\n• Url: ${url}\n• Additional info: ${additionalInfo}.\n• Request id: ${uuid}`,
                 },
               }
             ]
           }
 
           const messageForApprover = {
-            // change back to result.approverId
-            channel: 'UDW1KUF6H',
-            text: `:corn: Hi ${result.approverName}, you have a new TTC request ${uuid} from ${result.requesterName}`,
+            // if testing locally, change channel to a user's Slack id else result.approverId to send to real budget approver.
+            channel: `U03E98JJN`,
+            // text that appears in the Slack notification
+            text: `Hi ${result.approverName}, you have a new ${reason} request from ${result.requesterName}\n• Cost: £${cost}\n• Cost: £${cost}\n• Travel/accomodation cost: £${travelCost}\n• Calendar year: ${calendarYear}\n\n• Url: ${url}• Additional info: ${additionalInfo}.\n• Request id: ${uuid}`,
+            // text that appears in the Slack id
             blocks: [
               {
                 "type": "section",
                 "text": {
                   "type": "mrkdwn",
-                  "text": `:corn: Hi ${result.approverName}, you have a new TTC request ${uuid} from ${result.requesterName}`
+                  "text": `Hi ${result.approverName}, you have a new ${reason} request from ${result.requesterName}.\n• Cost: £${cost}\n• Travel/accomodation cost: £${travelCost}\n• Calendar year: ${calendarYear}\n• Url: ${url}\n• Additional info: ${additionalInfo}.\n• Request id: ${uuid}`
                 }
               },
               {
@@ -138,9 +142,9 @@ module.exports = {
             ]
           }
 
-          const url = "https://slack.com/api/chat.postMessage"
+          const slackUrl = "https://slack.com/api/chat.postMessage"
 
-          fetch(url, {
+          fetch(slackUrl, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -148,16 +152,17 @@ module.exports = {
             },
             body: JSON.stringify(messageForApprover)
           })
-            .then(response => {
-              console.log('response for approver', response.data)
-              return resolve(response)
+          .then(response => response.json())
+          .then(data =>  {
+              console.log('response for approver', data)
+              return resolve(data)
             })
             .catch(err => {
               console.log(err)
               return reject(err)
             })
 
-          fetch(url, {
+          fetch(slackUrl, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -165,9 +170,12 @@ module.exports = {
             },
             body: JSON.stringify(messageForRequester)
           })
-            .then(response => {
-              console.log('response for requester', response.data)
-              return resolve(response)
+            .then(response => response.json())
+            .then(data => 
+
+            {
+              console.log('response for requester', data)
+              return resolve(data)
             })
             .catch(err => {
               console.log(err)
