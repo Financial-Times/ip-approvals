@@ -87,7 +87,7 @@ module.exports = {
 
           const messageForRequester = {
             // text that appears in Slack notification
-            text: `Hi ${result.requesterName}, your approver ${result.approverName} has received your new ${reason} request.\n• Cost: £${cost}\n• Travel/accomodation cost: £${travelCost}\n• Calendar year: ${calendarYear}\n• Booking url: ${url}\n• Additional info: ${additionalInfo}.\n• Request id: ${uuid}`,
+            text: `Hi ${result.requesterName}, your approver ${result.approverName} has received your new ${reason} request.\n• Cost: £${cost}\n• Travel/accomodation cost: £${travelCost}\n• Calendar year: ${calendarYear}\n• Booking url: ${url}\n• Additional info: ${additionalInfo}\n• Request id: ${uuid}`,
             channel: `${result.requesterId}`,
             // text that appears in Slack message
             blocks: [
@@ -95,7 +95,7 @@ module.exports = {
                 type: 'section',
                 text: {
                   type: 'mrkdwn',
-                  text: `Hi ${result.requesterName}, your approver ${result.approverName} has received your new ${reason} request.\n• Cost: £${cost}\n• Travel/accomodation cost: £${travelCost}\n• Calendar year: ${calendarYear}\n• Url: ${url}\n• Additional info: ${additionalInfo}.\n• Request id: ${uuid}`,
+                  text: `Hi ${result.requesterName}, your approver ${result.approverName} has received your new ${reason} request.\n• Cost: £${cost}\n• Travel/accomodation cost: £${travelCost}\n• Calendar year: ${calendarYear}\n• Url: ${url}\n• Additional info: ${additionalInfo}\n• Request id: ${uuid}`,
                 },
               }
             ]
@@ -105,14 +105,14 @@ module.exports = {
             // if testing locally, change channel to a user's Slack id else result.approverId to send to real budget approver.
             channel: `U03E98JJN`,
             // text that appears in the Slack notification
-            text: `Hi ${result.approverName}, you have a new ${reason} request from ${result.requesterName}\n• Cost: £${cost}\n• Cost: £${cost}\n• Travel/accomodation cost: £${travelCost}\n• Calendar year: ${calendarYear}\n\n• Url: ${url}• Additional info: ${additionalInfo}.\n• Request id: ${uuid}`,
+            text: `Hi ${result.approverName}, you have a new ${reason} request from ${result.requesterName}\n• Cost: £${cost}\n• Cost: £${cost}\n• Travel/accomodation cost: £${travelCost}\n• Calendar year: ${calendarYear}\n\n• Url: ${url}• Additional info: ${additionalInfo}\n• Request id: ${uuid}`,
             // text that appears in the Slack id
             blocks: [
               {
                 "type": "section",
                 "text": {
                   "type": "mrkdwn",
-                  "text": `Hi ${result.approverName}, you have a new ${reason} request from ${result.requesterName}.\n• Cost: £${cost}\n• Travel/accomodation cost: £${travelCost}\n• Calendar year: ${calendarYear}\n• Url: ${url}\n• Additional info: ${additionalInfo}.\n• Request id: ${uuid}`
+                  "text": `Hi ${result.approverName}, you have a new ${reason} request from ${result.requesterName}.\n• Cost: £${cost}\n• Travel/accomodation cost: £${travelCost}\n• Calendar year: ${calendarYear}\n• Url: ${url}\n• Additional info: ${additionalInfo}\n• Request id: ${uuid}`
                 }
               },
               {
