@@ -19,11 +19,9 @@ const secondPeopleAPIcall = (approver) => {
   return new Promise((resolve, reject) => {
     fetch(peopleAPIurl, options)
       .then(response => {
-        console.log('response number 2', response.statusText)
         return response.json();
       })
       .then(json => {
-        console.log('approver slack id', json[0].slack.id)
         resolve({
           approverId: json[0].slack.id,
         })
@@ -44,11 +42,9 @@ const peopleApiCall = (person) => {
   return new Promise((resolve, reject) => {
     fetch(peopleAPIurl, options)
       .then(response => {
-        console.log('response', response.statusText)
         return response.json();
       })
       .then(json => {
-        console.log('approver name, ', json[0].finance[0].name, ' requester id, ', json[0].slack.id)
         secondPeopleAPIcall(json[0].finance[0].name)
           .then(result => {
             resolve({
@@ -60,7 +56,6 @@ const peopleApiCall = (person) => {
           })
       })
       .catch(err => {
-        console.log(err)
         return reject(err)
       })
   })
@@ -68,23 +63,13 @@ const peopleApiCall = (person) => {
 
 module.exports = {
   sendSlackMessage: (details) => {
-    console.log(details);
     const { emailAddress, cost, reason, url, calendarYear, travelCost, additionalInfo, uuid } = details
-
-    console.log(`${emailAddress} wants £${cost} for ${reason}`)
 
     const person = emailAddress.split('@')[0]
 
     return new Promise((resolve, reject) => {
-      console.log('trying to send');
-
-      console.log('people api call')
-
       peopleApiCall(person)
         .then(result => {
-
-          console.log(result)
-
           const messageForRequester = {
             // text that appears in Slack notification
             text: `Hi ${result.requesterName}, your approver ${result.approverName} has received your new ${reason} request.\n• Cost: £${cost}\n• Travel/accomodation cost: £${travelCost}\n• Calendar year: ${calendarYear}\n• Booking url: ${url}\n• Additional info: ${additionalInfo}\n• Request id: ${uuid}`,
@@ -103,7 +88,7 @@ module.exports = {
 
           const messageForApprover = {
             // if testing locally, change channel to a user's Slack id else result.approverId to send to real budget approver.
-            channel: `U03E98JJN`,
+            channel: `${result.approverId}`,
             // text that appears in the Slack notification
             text: `Hi ${result.approverName}, you have a new ${reason} request from ${result.requesterName}\n• Cost: £${cost}\n• Cost: £${cost}\n• Travel/accomodation cost: £${travelCost}\n• Calendar year: ${calendarYear}\n\n• Url: ${url}• Additional info: ${additionalInfo}\n• Request id: ${uuid}`,
             // text that appears in the Slack id
@@ -152,13 +137,11 @@ module.exports = {
             },
             body: JSON.stringify(messageForApprover)
           })
-          .then(response => response.json())
-          .then(data =>  {
-              console.log('response for approver', data)
+            .then(response => response.json())
+            .then(data => {
               return resolve(data)
             })
             .catch(err => {
-              console.log(err)
               return reject(err)
             })
 
@@ -171,14 +154,10 @@ module.exports = {
             body: JSON.stringify(messageForRequester)
           })
             .then(response => response.json())
-            .then(data => 
-
-            {
-              console.log('response for requester', data)
+            .then(data => {
               return resolve(data)
             })
             .catch(err => {
-              console.log(err)
               return reject(err)
             })
         })
